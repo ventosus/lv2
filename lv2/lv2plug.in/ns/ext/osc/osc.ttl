@@ -1,0 +1,38 @@
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix osc:  <http://lv2plug.in/ns/ext/osc#> .
+@prefix atom: <http://lv2plug.in/ns/ext/atom#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<http://lv2plug.in/ns/ext/osc>
+	a owl:Ontology ;
+	rdfs:seeAlso <osc.h> ,
+		<lv2-osc.doap.ttl> ;
+	lv2:documentation """
+<p>This specification defines a data type for an OSC packet, osc:OscEvent.
+OSC is the <a href="http://opensoundcontrol.org/spec-1_0">Open Sound Control</a>
+encoding, a widely used transport independent binary standard for controlling
+digital media, software and hardware.</p>
+
+<p>For plugins that process OSC (or other situations where OSC is sent via a
+generic transport) the only type defined here, osc:OscEvent, can be mapped to
+an integer and used as the type of an LV2 <a href="../atom/atom.html#Atom">Atom</a>.</p>
+""" .
+
+osc:OscEvent
+	a rdfs:Class ,
+		rdfs:Datatype ;
+	rdfs:label "OSC Packet" ;
+	rdfs:subClassOf atom:Atom ;
+	owl:onDatatype xsd:hexBinary ;
+	lv2:documentation """
+<p>A single raw OSC packet (i.e. a sequence of bytes).</p>
+
+<p>This is equivalent to a standard OSC packet, e.g. a single OSC message
+or a single OSC bundle which contains other OSC messages and/or nested
+OSC bundles.</p>
+
+<p>If a osc:OscEvent is serialised to a string, the format should be
+xsd:hexBinary.:</p>
+""" .
