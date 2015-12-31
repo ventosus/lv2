@@ -1,0 +1,53 @@
+@prefix atom: <http://lv2plug.in/ns/ext/atom#> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix lv2: <http://lv2plug.in/ns/lv2core#> .
+@prefix param: <http://lv2plug.in/ns/ext/parameters#> .
+@prefix patch: <http://lv2plug.in/ns/ext/patch#> .
+@prefix plug: <http://lv2plug.in/plugins/eg-osc#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix state: <http://lv2plug.in/ns/ext/state#> .
+@prefix urid: <http://lv2plug.in/ns/ext/urid#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix osc: <http://lv2plug.in/ns/ext/osc#> .
+@prefix midi: <http://lv2plug.in/ns/ext/midi#> .
+@prefix log: <http://lv2plug.in/ns/ext/log#> .
+
+# Most of the plugin description is similar to the others we have seen, but
+# this plugin has only two ports, for receiving and sending messages used to
+# manipulate and access parameters.
+<http://lv2plug.in/plugins/eg-osc>
+	a lv2:Plugin ,
+		lv2:UtilityPlugin ;
+	doap:name "Example Open Sound Control" ;
+	doap:license <http://opensource.org/licenses/isc> ;
+	lv2:project <http://lv2plug.in/ns/lv2> ;
+	lv2:requiredFeature urid:map, urid:unmap, log:log ;
+	lv2:optionalFeature lv2:hardRTCapable ;
+	lv2:port [
+		a lv2:InputPort ,
+			atom:AtomPort ;
+		atom:bufferType atom:Sequence ;
+		atom:supports osc:Event ;
+		atom:supports midi:MidiEvent ;
+		lv2:index 0 ;
+		lv2:symbol "in" ;
+		lv2:name "In" ;
+		lv2:designation lv2:control
+	] , [
+		a lv2:OutputPort ,
+			atom:AtomPort ;
+		atom:bufferType atom:Sequence ;
+		atom:supports osc:Event ;
+		atom:supports midi:MidiEvent ;
+		lv2:index 1 ;
+		lv2:symbol "out" ;
+		lv2:name "Out" ;
+		lv2:designation lv2:control
+	] , [
+		a lv2:InputPort ,
+			lv2:ControlPort ;
+		lv2:index 2 ;
+		lv2:symbol "toggle" ;
+		lv2:name "Toggle" ;
+		lv2:portProperty lv2:toggled ;
+	] .

@@ -1,0 +1,22 @@
+@prefix atom: <http://lv2plug.in/ns/ext/atom#> .
+@prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix osc: <http://lv2plug.in/ns/ext/osc#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://lv2plug.in/ns/ext/osc>
+	a owl:Ontology ;
+	rdfs:seeAlso <osc.h> ,
+		<lv2-osc.doap.ttl> ;
+	lv2:documentation """
+<p>TODO.</p>
+""" .
+
+osc:Event
+	a rdfs:Class ,
+		rdfs:Datatype ;
+	rdfs:label "OSC Message" ;
+	rdfs:subClassOf atom:Atom ;
+	lv2:documentation """
+<p>TODO.</p>
+""" .

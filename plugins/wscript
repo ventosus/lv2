@@ -24,7 +24,8 @@ def build(bld):
               'eg-metro.lv2',
               'eg-sampler.lv2',
               'eg-scope.lv2',
-              'eg-params.lv2']:
+              'eg-params.lv2',
+              'eg-osc.lv2']:
         files += bld.path.ant_glob('%s/*.txt' % i)
         files += bld.path.ant_glob('%s/manifest.ttl*' % i)
         files += bld.path.ant_glob('%s/*.ttl' % i)

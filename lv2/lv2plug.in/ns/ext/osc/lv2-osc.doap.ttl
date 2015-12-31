@@ -1,0 +1,24 @@
+@prefix dcs: <http://ontologi.es/doap-changeset#> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://lv2plug.in/ns/ext/osc>
+	a doap:Project ;
+	rdfs:seeAlso <../../meta/meta.ttl> ;
+	doap:license <http://opensource.org/licenses/isc> ;
+	doap:name "LV2 OSC" ;
+	doap:shortdesc "An atomized definition of OSC." ;
+	doap:maintainer <http://drobilla.net/drobilla#me> ;
+	doap:created "2016-01-21" ;
+	doap:developer <http://open-music-kontrollers.ch/ventosus#me> ;
+	doap:release [
+		doap:revision "1.0" ;
+		doap:created "2010-10-04" ;
+		doap:file-release <http://lv2plug.in/spec/lv2-osc-1.0.tar.gz> ;
+		dcs:blame <http://open-music-kontrollers.ch/ventosus#me> ;
+		dcs:changeset [
+			dcs:item [
+				rdfs:label "Initial release."
+			]
+		]
+	] .
