@@ -15,6 +15,8 @@
   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
+#define _DEFAULT_SOURCE //hack for be??toh / htobe??
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,8 +26,10 @@
 #include "lv2/lv2plug.in/ns/ext/urid/urid.h"
 #include "lv2/lv2plug.in/ns/ext/log/logger.h"
 #include "lv2/lv2plug.in/ns/ext/atom/forge.h"
+#include "lv2/lv2plug.in/ns/ext/osc/osc.h"
+#include "lv2/lv2plug.in/ns/ext/osc/util.h"
 #include "lv2/lv2plug.in/ns/ext/osc/forge.h"
-#include "lv2/lv2plug.in/ns/ext/osc/serialize.h"
+#include "lv2/lv2plug.in/ns/ext/osc/mold.h"
 
 #define EG_OSC_URI "http://lv2plug.in/plugins/eg-osc"
 #define BUF_SIZE 2048
@@ -46,7 +50,8 @@ typedef struct {
 	LV2_Atom_Forge forge;
 
 	// Forge for creating OSC atoms
-	LV2_OSC_Forge oforge;
+	LV2_OSC osc;
+	LV2_OSC_Mold mold;
 
 	// Logger convenience API
 	LV2_Log_Logger logger;
@@ -135,7 +140,8 @@ instantiate(const LV2_Descriptor*     descriptor,
 
 	// Map URIs and initialise forge/logger
 	lv2_atom_forge_init(&self->forge, self->map);
-	lv2_osc_forge_init(&self->oforge, self->map);
+	lv2_osc_init(&self->osc, self->map);
+	lv2_osc_mold_init(&self->mold, self->map, self->unmap);
 	lv2_log_logger_init(&self->logger, self->map, self->log);
 
 	return self;
@@ -152,19 +158,19 @@ cleanup(LV2_Handle instance)
 static inline void
 _dump_message(Plugin *self, int64_t frames, const LV2_Atom_Object *obj, int indent)
 {
-	LV2_OSC_Forge *oforge = &self->oforge;
+	LV2_OSC *osc = &self->osc;
 
 	const LV2_Atom_String *path;
 	const LV2_Atom_Tuple *arguments;
-	if(lv2_osc_forge_message_unpack(oforge, obj, &path, &arguments))
+	if(lv2_osc_message_get(osc, obj, &path, &arguments))
 	{
 		const char *path_str = LV2_ATOM_BODY_CONST(path);
-		lv2_log_trace(&self->logger, "%*s", indent + strlen(path_str), path_str);
+		lv2_log_trace(&self->logger, "%*s", (int)(indent + strlen(path_str)), path_str);
 
 		LV2_ATOM_TUPLE_FOREACH(arguments, argument)
 		{
 			const char *type_str = self->unmap->unmap(self->unmap->handle, argument->type);
-			lv2_log_trace(&self->logger, "%*s", 2 + indent + strlen(type_str), type_str);
+			lv2_log_trace(&self->logger, "%*s", (int)(2 + indent + strlen(type_str)), type_str);
 		}
 	}
 }
@@ -172,11 +178,11 @@ _dump_message(Plugin *self, int64_t frames, const LV2_Atom_Object *obj, int inde
 static inline void
 _dump_bundle(Plugin *self, int64_t frames, const LV2_Atom_Object *obj, int indent)
 {
-	LV2_OSC_Forge *oforge = &self->oforge;
+	LV2_OSC *osc = &self->osc;
 
 	const LV2_OSC_Timestamp *timestamp;
 	const LV2_Atom_Tuple *items;
-	if(lv2_osc_forge_bundle_unpack(oforge, obj, &timestamp, &items))
+	if(lv2_osc_bundle_get(osc, obj, &timestamp, &items))
 	{
 		lv2_log_trace(&self->logger, "%*s%08x.%08x", indent, "", timestamp->body.integral, timestamp->body.fraction);
 
@@ -184,9 +190,9 @@ _dump_bundle(Plugin *self, int64_t frames, const LV2_Atom_Object *obj, int inden
 		{
 			const LV2_Atom_Object *item_obj = (const LV2_Atom_Object *)item;
 
-			if(lv2_osc_forge_is_bundle_type(oforge, item_obj->body.otype))
+			if(lv2_osc_is_bundle_type(osc, item_obj->body.otype))
 				_dump_bundle(self, frames, item_obj, indent + 2);
-			else if(lv2_osc_forge_is_message_type(oforge, item_obj->body.otype))
+			else if(lv2_osc_is_message_type(osc, item_obj->body.otype))
 				_dump_message(self, frames, item_obj, indent + 2);
 		}
 	}
@@ -197,13 +203,13 @@ run(LV2_Handle instance, uint32_t sample_count)
 {
 	Plugin *self = instance;
 	LV2_Atom_Forge *forge = &self->forge;
-	LV2_OSC_Forge *oforge = &self->oforge;
+	LV2_OSC *osc = &self->osc;
+	LV2_OSC_Mold *mold = &self->mold;
 
 	const bool _toggle = floor(*self->toggle);
 
 	const uint32_t capacity = self->event_out->atom.size;
 	lv2_atom_forge_set_buffer(forge, (uint8_t *)self->event_out, capacity);
-	lv2_osc_forge_set_forge(oforge, forge);
 
 	LV2_Atom_Forge_Frame frame;
 	LV2_Atom_Forge_Frame bundle_frame [2];
@@ -215,16 +221,16 @@ run(LV2_Handle instance, uint32_t sample_count)
 		if(ref)
 			ref = lv2_atom_forge_frame_time(forge, 0);
 		if(ref)
-			ref = lv2_osc_forge_bundle(oforge, bundle_frame, 0, 0, 1);
+			ref = lv2_osc_forge_bundle_head(forge, osc, bundle_frame, 0, 0, 1);
 		if(ref)
-			ref = lv2_osc_forge_message_vararg(oforge, 0, "/LV2", "is", 2016, "rocks");
+			ref = lv2_osc_forge_message_vararg(forge, osc, 0, "/LV2", "is", 2016, "rocks");
 		if(ref)
-			lv2_osc_forge_pop(oforge, bundle_frame);
+			lv2_osc_forge_pop(forge, bundle_frame);
 	}
 
 	LV2_ATOM_SEQUENCE_FOREACH(self->event_in, ev)
 	{
-		if(lv2_osc_forge_is_packet_type(oforge, ev->body.type))
+		if(lv2_osc_is_packet_type(osc, ev->body.type))
 		{
 			lv2_log_trace(&self->logger, "OSC packet");
 			const uint8_t *buf = LV2_ATOM_BODY_CONST(&ev->body);
@@ -233,42 +239,44 @@ run(LV2_Handle instance, uint32_t sample_count)
 			if(ref)
 				ref = lv2_atom_forge_frame_time(forge, ev->time.frames);
 			if(ref)
-				ref = lv2_osc_deserialize_packet(oforge, 0, buf, size);
+				ref = lv2_osc_forge_packet(forge, osc, 0, buf, size);
 		}
 		else if(lv2_atom_forge_is_object_type(forge, ev->body.type))
 		{
 			const LV2_Atom_Object *obj = (const LV2_Atom_Object *)&ev->body;
 
-			if(lv2_osc_forge_is_bundle_type(oforge, obj->body.otype))
+			if(lv2_osc_is_bundle_type(osc, obj->body.otype))
 			{
 				lv2_log_trace(&self->logger, "OSC bundle");
 				_dump_bundle(self, ev->time.frames, obj, 0);
 
-				const size_t size = lv2_osc_serialize_bundle(oforge, obj, self->buf, BUF_SIZE);
+				lv2_osc_mold_set_buffer(mold, self->buf, BUF_SIZE);
+				const size_t size = lv2_osc_mold_bundle(mold, obj);
 				if(size)
 				{
 					if(ref)
 						ref = lv2_atom_forge_frame_time(forge, ev->time.frames);
 					if(ref)
-						ref = lv2_atom_forge_atom(forge, size, oforge->Packet);
+						ref = lv2_atom_forge_atom(forge, size, osc->OSC_Packet);
 					if(ref)
 						ref = lv2_atom_forge_raw(forge, self->buf, size);
 					if(ref)
 						lv2_atom_forge_pad(forge, size);
 				}
 			}
-			else if(lv2_osc_forge_is_message_type(oforge, obj->body.otype))
+			else if(lv2_osc_is_message_type(osc, obj->body.otype))
 			{
 				lv2_log_trace(&self->logger, "OSC message");
 				_dump_message(self, ev->time.frames, obj, 0);
 
-				const size_t size = lv2_osc_serialize_message(oforge, obj, self->buf, BUF_SIZE);
+				lv2_osc_mold_set_buffer(mold, self->buf, BUF_SIZE);
+				const size_t size = lv2_osc_mold_message(mold, obj); //TODO rename to lv2_osc_mold_message
 				if(size)
 				{
 					if(ref)
 						ref = lv2_atom_forge_frame_time(forge, ev->time.frames);
 					if(ref)
-						ref = lv2_atom_forge_atom(forge, size, oforge->Packet);
+						ref = lv2_atom_forge_atom(forge, size, osc->OSC_Packet);
 					if(ref)
 						ref = lv2_atom_forge_raw(forge, self->buf, size);
 					if(ref)

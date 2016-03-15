@@ -15,8 +15,66 @@
 osc:Event
 	a rdfs:Class ,
 		rdfs:Datatype ;
-	rdfs:label "OSC Message" ;
 	rdfs:subClassOf atom:Atom ;
+	rdfs:label "OSC Event" ;
 	lv2:documentation """
 <p>TODO.</p>
 """ .
+
+osc:Timestamp
+	a rdfs:Class ,
+		rdfs:Datatype ;
+	rdfs:subClassOf atom:Atom ;
+	rdfs:label "OSC Timestamp" ;
+	atom:cType "LV2_OSC_Timestamp" ;
+	rdfs:comment "Two unsigned Int representing a 32.32 fixed point OSC timestamp." .
+
+osc:Bundle
+	a rdfs:Class ,
+		rdfs:Datatype ;
+	rdfs:subClassOf atom:Object ;
+	rdfs:label "Bundle" ;
+	rdfs:comment "An atomized OSC bundle object." .
+
+osc:Message
+	a rdfs:Class ,
+		rdfs:Datatype ;
+	rdfs:subClassOf atom:Object ;
+	rdfs:label "Message" ;
+	rdfs:comment "An atomized OSC message object." .
+
+osc:Packet
+	a rdfs:Class ,
+		rdfs:Datatype ;
+	rdfs:subClassOf atom:Atom ;
+	owl:onDatatype xsd:base64Binary ;
+	rdfs:label "Packet" ;
+	rdfs:comment "A raw OSC packet." .
+
+osc:bundleTimestamp
+	a rdfs:Class ;
+	rdfs:subClassOf atom:Property ,
+		osc:Timestamp ;
+	rdfs:label "Bundle timestamp" ;
+	rdfs:comment "Timestamp of OSC bundle." .
+
+osc:bundleItems
+	a rdfs:Class ;
+	rdfs:subClassOf atom:Property ,
+		atom:Tuple ;
+	rdfs:label "Bundle items" ;
+	rdfs:comment "Items of OSC bundle." .
+
+osc:messagePath
+	a rdfs:Class ;
+	rdfs:subClassOf atom:Property ,
+		atom:String ;
+	rdfs:label "Message path" ;
+	rdfs:comment "Path of OSC message." .
+
+osc:messageArguments
+	a rdfs:Class ;
+	rdfs:subClassOf atom:Property ,
+		atom:Tuple ;
+	rdfs:label "Message arguments" ;
+	rdfs:comment "Arguments of OSC message." .

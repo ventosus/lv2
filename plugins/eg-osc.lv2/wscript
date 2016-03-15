@@ -18,7 +18,7 @@ def configure(conf):
     conf.load('compiler_c')
     autowaf.configure(conf)
     autowaf.set_c99_mode(conf)
-    autowaf.display_header('Params Configuration')
+    autowaf.display_header('OSC Configuration')
 
     if not autowaf.is_child():
         autowaf.check_pkg(conf, 'lv2', atleast_version='1.12.1', uselib_store='LV2')

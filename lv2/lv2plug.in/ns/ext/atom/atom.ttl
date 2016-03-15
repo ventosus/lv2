@@ -164,6 +164,14 @@ atom:Bool
 	owl:onDatatype xsd:boolean ;
 	rdfs:comment "An Int where 0 is false and any other value is true." .
 
+atom:Impulse
+	a rdfs:Class ,
+		rdfs:Datatype ;
+	rdfs:subClassOf atom:Atom ;
+	rdfs:label "Impulse" ;
+	atom:cType "LV2_Atom_Impulse" ;
+	rdfs:comment "An empty atom with type atom:Impulse." .
+
 atom:String
 	a rdfs:Class ,
 		rdfs:Datatype ;

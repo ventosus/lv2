@@ -36,6 +36,7 @@
 #define LV2_ATOM__AtomPort      LV2_ATOM_PREFIX "AtomPort"
 #define LV2_ATOM__Blank         LV2_ATOM_PREFIX "Blank"
 #define LV2_ATOM__Bool          LV2_ATOM_PREFIX "Bool"
+#define LV2_ATOM__Impulse       LV2_ATOM_PREFIX "Impulse"
 #define LV2_ATOM__Chunk         LV2_ATOM_PREFIX "Chunk"
 #define LV2_ATOM__Double        LV2_ATOM_PREFIX "Double"
 #define LV2_ATOM__Event         LV2_ATOM_PREFIX "Event"
@@ -132,6 +133,9 @@ typedef struct {
 
 /** An atom:Bool.  May be cast to LV2_Atom. */
 typedef LV2_Atom_Int LV2_Atom_Bool;
+
+/** An atom:Impulse.  May be cast to LV2_Atom. */
+typedef LV2_Atom LV2_Atom_Impulse;
 
 /** An atom:URID.  May be cast to LV2_Atom. */
 typedef struct {

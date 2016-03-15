@@ -112,6 +112,7 @@ typedef struct {
 
 	LV2_URID Blank LV2_ATOM_FORGE_DEPRECATED;
 	LV2_URID Bool;
+	LV2_URID Impulse;
 	LV2_URID Chunk;
 	LV2_URID Double;
 	LV2_URID Float;
@@ -145,6 +146,7 @@ lv2_atom_forge_init(LV2_Atom_Forge* forge, LV2_URID_Map* map)
 	lv2_atom_forge_set_buffer(forge, NULL, 0);
 	forge->Blank    = map->map(map->handle, LV2_ATOM__Blank);
 	forge->Bool     = map->map(map->handle, LV2_ATOM__Bool);
+	forge->Impulse  = map->map(map->handle, LV2_ATOM__Impulse);
 	forge->Chunk    = map->map(map->handle, LV2_ATOM__Chunk);
 	forge->Double   = map->map(map->handle, LV2_ATOM__Double);
 	forge->Float    = map->map(map->handle, LV2_ATOM__Float);
@@ -406,6 +408,13 @@ lv2_atom_forge_bool(LV2_Atom_Forge* forge, bool val)
 {
 	const LV2_Atom_Bool a = { { sizeof(int32_t), forge->Bool }, val ? 1 : 0 };
 	return lv2_atom_forge_primitive(forge, &a.atom);
+}
+
+/** Write an atom:Impulse. */
+static inline LV2_Atom_Forge_Ref
+lv2_atom_forge_impulse(LV2_Atom_Forge* forge)
+{
+	return lv2_atom_forge_atom(forge, 0, forge->Impulse);
 }
 
 /** Write an atom:URID. */

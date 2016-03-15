@@ -15,268 +15,118 @@
 */
 
 /**
-   @file forge.h An API for constructing LV2 OSC atoms.
-
-   This file provides an API for constructing Atoms which makes it relatively
-   simple to build nested atoms of arbitrary complexity without requiring
-   dynamic memory allocation.
-
-   The API is based on successively appending the appropriate pieces to build a
-   complete Atom.  The size of containers is automatically updated.  Functions
-   that begin a container return (via their frame argument) a stack frame which
-   must be popped when the container is finished.
-
-   All output is written to a user-provided buffer or sink function.  This
-   makes it popssible to create create atoms on the stack, on the heap, in LV2
-   port buffers, in a ringbuffer, or elsewhere, all using the same API.
-
-   This entire API is realtime safe if used with a buffer or a realtime safe
-   sink, except lv2_atom_forge_init() which is only realtime safe if the URI
-   map function is.
-
-   Note these functions are all static inline, do not take their address.
-
-   This header is non-normative, it is provided for convenience.
-*/
-
-/**
    @defgroup forge Forge
-   @ingroup atom
+   @ingroup osc
    @{
 */
 
 #ifndef LV2_OSC_FORGE_H
 #define LV2_OSC_FORGE_H
 
-#define __USE_MISC // bloody hack for C89
 #include <endian.h>
 #include <ctype.h>
 
 #include "lv2/lv2plug.in/ns/ext/osc/osc.h"
-#include "lv2/lv2plug.in/ns/ext/midi/midi.h"
+#include "lv2/lv2plug.in/ns/ext/atom/forge.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** A "forge" for creating atoms by appending to a buffer. */
-typedef struct {
-	LV2_Atom_Forge *forge;
-
-	LV2_URID Packet;
-	LV2_URID Bundle;
-	LV2_URID Message;
-	LV2_URID Timestamp;
-
-	LV2_URID bundleTimestamp;
-	LV2_URID bundleItems;
-
-	LV2_URID messagePath;
-	LV2_URID messageArguments;
-
-	LV2_URID MidiEvent;
-} LV2_OSC_Forge;
-
-typedef enum {
-	LV2_OSC_INT				= 'i', /**< 32-bit Integer */
-	LV2_OSC_FLOAT			= 'f', /**< 32-bit Integer */
-	LV2_OSC_STRING		= 's', /**< 32-bit Integer */
-	LV2_OSC_BLOB			= 'b', /**< 32-bit Integer */
-
-	LV2_OSC_LONG			= 'h', /**< 32-bit Integer */
-	LV2_OSC_DOUBLE		= 'd', /**< 32-bit Integer */
-	LV2_OSC_TIMESTAMP	= 't', /**< 32-bit Integer */
-
-	LV2_OSC_TRUE			= 'T', /**< 32-bit Integer */
-	LV2_OSC_FALSE			= 'F', /**< 32-bit Integer */
-	LV2_OSC_NIL				= 'N', /**< 32-bit Integer */
-	LV2_OSC_IMPULSE		= 'I', /**< 32-bit Integer */
-
-	LV2_OSC_SYMBOL		= 'S', /**< 32-bit Integer */
-	LV2_OSC_MIDI			= 'm' /**< 32-bit Integer */
-} LV2_OSC_Argument_Type;
+/**
+   TODO
+*/
+#define lv2_osc_forge_int lv2_atom_forge_int
+#define lv2_osc_forge_float lv2_atom_forge_float
+#define lv2_osc_forge_string lv2_atom_forge_string
+#define lv2_osc_forge_long lv2_atom_forge_long
+#define lv2_osc_forge_double lv2_atom_forge_double
+#define lv2_osc_forge_true(forge) lv2_atom_forge_bool((forge), 1)
+#define lv2_osc_forge_false(forge) lv2_atom_forge_bool((forge), 0)
+#define lv2_osc_forge_nil(forge) lv2_atom_forge_atom((forge), 0, 0)
+#define lv2_osc_forge_impulse lv2_atom_forge_impulse
 
 /**
-   Initialise `forge`.
-
-   URIs will be mapped using `map` and stored, a reference to `map` itself is
-   not held.
+   TODO
 */
-static inline void
-lv2_osc_forge_init(LV2_OSC_Forge *oforge, LV2_URID_Map* map)
+static inline LV2_Atom_Forge_Ref
+lv2_osc_forge_symbol(LV2_Atom_Forge *forge, LV2_OSC *osc, const char *symbol)
 {
-	oforge->Packet = map->map(map->handle, LV2_OSC__Packet);
-	oforge->Bundle = map->map(map->handle, LV2_OSC__Bundle);
-	oforge->Message = map->map(map->handle, LV2_OSC__Message);
-	oforge->Timestamp = map->map(map->handle, LV2_OSC__Timestamp);
-
-	oforge->bundleTimestamp = map->map(map->handle, LV2_OSC__bundleTimestamp);
-	oforge->bundleItems = map->map(map->handle, LV2_OSC__bundleItems);
-
-	oforge->messagePath = map->map(map->handle, LV2_OSC__messagePath);
-	oforge->messageArguments = map->map(map->handle, LV2_OSC__messageArguments);
-
-	oforge->MidiEvent = map->map(map->handle, LV2_MIDI__MidiEvent);
-}
-
-static inline bool
-lv2_osc_forge_is_packet_type(LV2_OSC_Forge *oforge, LV2_URID type)
-{
-	return type == oforge->Packet;
-}
-
-static inline bool
-lv2_osc_forge_is_bundle_type(LV2_OSC_Forge *oforge, LV2_URID type)
-{
-	return type == oforge->Bundle;
-}
-
-static inline bool
-lv2_osc_forge_is_message_type(LV2_OSC_Forge *oforge, LV2_URID type)
-{
-	return type == oforge->Message;
-}
-
-static inline bool
-lv2_osc_forge_bundle_unpack(LV2_OSC_Forge *oforge, const LV2_Atom_Object *obj,
-	const LV2_OSC_Timestamp **timestamp, const LV2_Atom_Tuple **items)
-{
-	*timestamp = NULL;
-	*items = NULL;
-
-	LV2_Atom_Object_Query q [] = {
-		{ oforge->bundleTimestamp, (const LV2_Atom **)timestamp },
-		{ oforge->bundleItems, (const LV2_Atom **)items },
-		{ 0, NULL }
-	};
-	lv2_atom_object_query(obj, q);
-
-	if(!*timestamp || ((*timestamp)->atom.type != oforge->Timestamp))
-		return false;
-	if(!*items || ((*items)->atom.type != oforge->forge->Tuple))
-		return false;
-
-	return true;
-}
-
-static inline bool
-lv2_osc_forge_message_unpack(LV2_OSC_Forge *oforge, const LV2_Atom_Object *obj,
-	const LV2_Atom_String **path, const LV2_Atom_Tuple **arguments)
-{
-	*path = NULL;
-	*arguments = NULL;
-
-	LV2_Atom_Object_Query q [] = {
-		{ oforge->messagePath, (const LV2_Atom **)path },
-		{ oforge->messageArguments, (const LV2_Atom **)arguments },
-		{ 0, NULL }
-	};
-	lv2_atom_object_query(obj, q);
-
-	if(!*path || ((*path)->atom.type != oforge->forge->String))
-		return false;
-	if(arguments && ((*arguments)->atom.type != oforge->forge->Tuple))
-		return false;
-
-	return true;
+	const LV2_URID urid = osc->map->map(osc->map->handle, symbol);
+	return lv2_atom_forge_urid(forge, urid);
 }
 
 /**
    TODO
 */
-static inline void
-lv2_osc_forge_set_forge(LV2_OSC_Forge *oforge, LV2_Atom_Forge *forge)
-{
-	oforge->forge = forge;
-}
-
-#define lv2_osc_forge_int(oforge, value) \
-	lv2_atom_forge_int((oforge)->forge, (value))
-
-#define lv2_osc_forge_float(oforge, value) \
-	lv2_atom_forge_float((oforge)->forge, (value))
-
-#define lv2_osc_forge_string(oforge, value, size) \
-	lv2_atom_forge_string((oforge)->forge, (value), (size))
-
-#define lv2_osc_forge_long(oforge, value) \
-	lv2_atom_forge_long((oforge)->forge, (value))
-
-#define lv2_osc_forge_double(oforge, value) \
-	lv2_atom_forge_double((oforge)->forge, (value))
-
-#define lv2_osc_forge_bool(oforge, value) \
-	lv2_atom_forge_bool((oforge)->forge, (value))
-
-#define lv2_osc_forge_bool(oforge, value) \
-	lv2_atom_forge_bool((oforge)->forge, (value))
-
-#define lv2_osc_forge_true(oforge) \
-	lv2_osc_forge_bool((oforge), 1)
-
-#define lv2_osc_forge_false(oforge) \
-	lv2_osc_forge_bool((oforge), 1)
-
-#define lv2_osc_forge_nil(oforge) \
-	lv2_atom_forge_atom((oforge)->forge, 0, 0)
-
-#define lv2_osc_forge_impulse(oforge) \
-	lv2_atom_forge_impulse((oforge)->forge)
-
-#define lv2_osc_forge_symbol(oforge, value) \
-	lv2_atom_forge_urid((oforge)->forge, (value))
-
 static inline LV2_Atom_Forge_Ref
-lv2_osc_forge_chunk(LV2_OSC_Forge* oforge, LV2_URID type, const uint8_t *buf, uint32_t size)
+lv2_osc_forge_chunk(LV2_Atom_Forge *forge, LV2_URID type,
+	const uint8_t *buf, uint32_t size)
 {
 	LV2_Atom_Forge_Ref ref;
-	if(  (ref = lv2_atom_forge_atom(oforge->forge, size, type))
-		&& (ref = lv2_atom_forge_raw(oforge->forge, buf, size)) ) {
-		lv2_atom_forge_pad(oforge->forge, size);
+	if(  (ref = lv2_atom_forge_atom(forge, size, type))
+		&& (ref = lv2_atom_forge_raw(forge, buf, size)) )
+	{
+		lv2_atom_forge_pad(forge, size);
+		return ref;
 	}
-	return ref;
-}
-
-static inline LV2_Atom_Forge_Ref
-lv2_osc_forge_midi(LV2_OSC_Forge* oforge, const uint8_t *buf, uint32_t size)
-{
-	return lv2_osc_forge_chunk(oforge, oforge->MidiEvent, buf, size);
-}
-
-static inline LV2_Atom_Forge_Ref
-lv2_osc_forge_blob(LV2_OSC_Forge* oforge, const uint8_t *buf, uint32_t size)
-{
-	return lv2_osc_forge_chunk(oforge, oforge->forge->Chunk, buf, size);
+	return 0;
 }
 
 /**
    TODO
 */
 static inline LV2_Atom_Forge_Ref
-lv2_osc_forge_timestamp(LV2_OSC_Forge* oforge, uint32_t integral, uint32_t fraction)
+lv2_osc_forge_midi(LV2_Atom_Forge *forge, LV2_OSC *osc, const uint8_t *buf, uint32_t size)
+{
+	assert(size <= 3);
+	return lv2_osc_forge_chunk(forge, osc->MIDI_MidiEvent, buf, size);
+}
+
+/**
+   TODO
+*/
+static inline LV2_Atom_Forge_Ref
+lv2_osc_forge_blob(LV2_Atom_Forge* forge, const uint8_t *buf, uint32_t size)
+{
+	return lv2_osc_forge_chunk(forge, forge->Chunk, buf, size);
+}
+
+/**
+   TODO
+*/
+static inline LV2_Atom_Forge_Ref
+lv2_osc_forge_timestamp(LV2_Atom_Forge *forge, LV2_OSC *osc,
+	uint32_t integral, uint32_t fraction)
 {
 	const LV2_OSC_Timestamp a = {
-		{ sizeof(LV2_OSC_Timestamp), oforge->Timestamp },
-		{ integral, fraction } };
-	return lv2_atom_forge_primitive(oforge->forge, &a.atom);
+		.atom = {
+			.size = sizeof(LV2_OSC_Timestamp),
+			.type = osc->OSC_Timestamp
+		},
+		.body = {
+			.integral = integral,
+			.fraction = fraction
+		}
+	};
+	return lv2_atom_forge_primitive(forge, &a.atom);
 }
 
 /**
    TODO
 */
 static inline LV2_Atom_Forge_Ref
-lv2_osc_forge_bundle(LV2_OSC_Forge* oforge,
-	LV2_Atom_Forge_Frame frame [2],
-	LV2_URID id,
-	uint32_t integral,
-	uint32_t fraction)
+lv2_osc_forge_bundle_head(LV2_Atom_Forge* forge, LV2_OSC *osc,
+	LV2_Atom_Forge_Frame frame [2], LV2_URID id,
+	uint32_t integral, uint32_t fraction)
 {
 	LV2_Atom_Forge_Ref ref;
-	if(  (ref = lv2_atom_forge_object(oforge->forge, &frame[0], id, oforge->Bundle))
-		&& (ref = lv2_atom_forge_key(oforge->forge, oforge->bundleTimestamp))
-		&& (ref = lv2_osc_forge_timestamp(oforge, integral, fraction))
-		&& (ref = lv2_atom_forge_key(oforge->forge, oforge->bundleItems))
-		&& (ref = lv2_atom_forge_tuple(oforge->forge, &frame[1])) ) {
+	if(  (ref = lv2_atom_forge_object(forge, &frame[0], id, osc->OSC_Bundle))
+		&& (ref = lv2_atom_forge_key(forge, osc->OSC_bundleTimestamp))
+		&& (ref = lv2_osc_forge_timestamp(forge, osc, integral, fraction))
+		&& (ref = lv2_atom_forge_key(forge, osc->OSC_bundleItems))
+		&& (ref = lv2_atom_forge_tuple(forge, &frame[1])) )
+	{
 		return ref;
 	}
 	return 0;
@@ -297,56 +147,54 @@ static const char valid_format_chars [] = {
 	'\0'
 };
 
-// check for valid path string
-static inline int
+/**
+   TODO
+*/
+static inline bool
 lv2_osc_check_path(const char *path)
 {
 	if(path[0] != '/')
-		return 0;
+		return false;
 
 	for(const char *ptr=path+1; *ptr!='\0'; ptr++)
 		if( (isprint(*ptr) == 0) || (strchr(invalid_path_chars, *ptr) != NULL) )
-			return 0;
+			return false;
 
-	return 1;
+	return true;
 }
 
-// check for valid format string 
-static inline int
+/**
+   TODO
+*/
+static inline bool
 lv2_osc_check_fmt(const char *format, int offset)
 {
-	if(offset)
-	{
-		if(format[0] != ',')
-			return 0;
-	}
+	if(offset && (format[0] != ',') )
+		return false;
 
 	for(const char *ptr=format+offset; *ptr!='\0'; ptr++)
-	{
 		if(strchr(valid_format_chars, *ptr) == NULL)
-			return 0;
-	}
+			return false;
 
-	return 1;
+	return true;
 }
 
 /**
    TODO
 */
 static inline LV2_Atom_Forge_Ref
-lv2_osc_forge_message(LV2_OSC_Forge* oforge,
+lv2_osc_forge_message_head(LV2_Atom_Forge *forge, LV2_OSC* osc,
 	LV2_Atom_Forge_Frame frame [2],
 	LV2_URID id,
 	const char *path)
 {
 	LV2_Atom_Forge_Ref ref;
-	if(!lv2_osc_check_path(path))
-		return 0;
-	if(  (ref = lv2_atom_forge_object(oforge->forge, &frame[0], id, oforge->Message))
-		&& (ref = lv2_atom_forge_key(oforge->forge, oforge->messagePath))
-		&& (ref = lv2_atom_forge_string(oforge->forge, path, strlen(path)))
-		&& (ref = lv2_atom_forge_key(oforge->forge, oforge->messageArguments))
-		&& (ref = lv2_atom_forge_tuple(oforge->forge, &frame[1])) ) {
+	if(  (ref = lv2_atom_forge_object(forge, &frame[0], id, osc->OSC_Message))
+		&& (ref = lv2_atom_forge_key(forge, osc->OSC_messagePath))
+		&& (ref = lv2_atom_forge_string(forge, path, strlen(path)))
+		&& (ref = lv2_atom_forge_key(forge, osc->OSC_messageArguments))
+		&& (ref = lv2_atom_forge_tuple(forge, &frame[1])) )
+	{
 		return ref;
 	}
 	return 0;
@@ -356,23 +204,25 @@ lv2_osc_forge_message(LV2_OSC_Forge* oforge,
    TODO
 */
 static inline void
-lv2_osc_forge_pop(LV2_OSC_Forge* oforge,
-	LV2_Atom_Forge_Frame frame [2])
+lv2_osc_forge_pop(LV2_Atom_Forge *forge, LV2_Atom_Forge_Frame frame [2])
 {
-	lv2_atom_forge_pop(oforge->forge, &frame[1]); // a LV2_Atom_Tuple
-	lv2_atom_forge_pop(oforge->forge, &frame[0]); // a LV2_Atom_Object
+	lv2_atom_forge_pop(forge, &frame[1]); // a LV2_Atom_Tuple
+	lv2_atom_forge_pop(forge, &frame[0]); // a LV2_Atom_Object
 }
 
+/**
+   TODO
+*/
 static inline LV2_Atom_Forge_Ref
-lv2_osc_forge_message_varlist(LV2_OSC_Forge *oforge, uint32_t id,
+lv2_osc_forge_message_varlist(LV2_Atom_Forge *forge, LV2_OSC *osc, uint32_t id,
 	const char *path, const char *fmt, va_list args)
 {
 	LV2_Atom_Forge_Frame frame [2];
 	LV2_Atom_Forge_Ref ref;
 
-	if(!lv2_osc_check_fmt(fmt, 0))
+	if(!lv2_osc_check_path(path) || !lv2_osc_check_fmt(fmt, 0))
 		return 0;
-	if(!(ref = lv2_osc_forge_message(oforge, frame, id, path)))
+	if(!(ref = lv2_osc_forge_message_head(forge, osc, frame, id, path)))
 		return 0;
 
 	for(const char *type = fmt; *type; type++)
@@ -381,26 +231,27 @@ lv2_osc_forge_message_varlist(LV2_OSC_Forge *oforge, uint32_t id,
 		{
 			case LV2_OSC_INT:
 			{
-				if(!(ref = lv2_osc_forge_int(oforge, va_arg(args, int32_t))))
+				if(!(ref = lv2_osc_forge_int(forge, va_arg(args, int32_t))))
 					return 0;
 				break;
 			}
 			case LV2_OSC_FLOAT:
 			{
-				if(!(ref = lv2_osc_forge_float(oforge, (float)va_arg(args, double))))
+				if(!(ref = lv2_osc_forge_float(forge, (float)va_arg(args, double))))
 					return 0;
 				break;
 			}
 			case LV2_OSC_STRING:
 			{
 				const char *s = va_arg(args, const char *);
-				if(!s || !(ref = lv2_osc_forge_string(oforge, s, strlen(s))))
+				if(!s || !(ref = lv2_osc_forge_string(forge, s, strlen(s))))
 					return 0;
 				break;
 			}
 			case LV2_OSC_SYMBOL:
 			{
-				if(!(ref = lv2_osc_forge_symbol(oforge, va_arg(args, uint32_t))))
+				const char *S = va_arg(args, const char *);
+				if(!S || !(ref = lv2_osc_forge_symbol(forge, osc, S)))
 					return 0;
 				break;
 			}
@@ -408,20 +259,20 @@ lv2_osc_forge_message_varlist(LV2_OSC_Forge *oforge, uint32_t id,
 			{
 				const int32_t size = va_arg(args, int32_t);
 				const uint8_t *b = va_arg(args, const uint8_t *);
-				if(!b || !(ref = lv2_osc_forge_blob(oforge, b, size)))
+				if(!b || !(ref = lv2_osc_forge_blob(forge, b, size)))
 					return 0;
 				break;
 			}
 			
 			case LV2_OSC_LONG:
 			{
-				if(!(ref = lv2_osc_forge_long(oforge, va_arg(args, int64_t))))
+				if(!(ref = lv2_osc_forge_long(forge, va_arg(args, int64_t))))
 					return 0;
 				break;
 			}
 			case LV2_OSC_DOUBLE:
 			{
-				if(!(ref = lv2_osc_forge_double(oforge, va_arg(args, double))))
+				if(!(ref = lv2_osc_forge_double(forge, va_arg(args, double))))
 					return 0;
 				break;
 			}
@@ -429,7 +280,7 @@ lv2_osc_forge_message_varlist(LV2_OSC_Forge *oforge, uint32_t id,
 			{
 				const uint32_t integral = va_arg(args, uint32_t);
 				const uint32_t fraction = va_arg(args, uint32_t);
-				if(!(ref = lv2_osc_forge_timestamp(oforge, integral, fraction)))
+				if(!(ref = lv2_osc_forge_timestamp(forge, osc, integral, fraction)))
 					return 0;
 				break;
 			}
@@ -438,32 +289,32 @@ lv2_osc_forge_message_varlist(LV2_OSC_Forge *oforge, uint32_t id,
 			{
 				const int32_t size = va_arg(args, int32_t);
 				const uint8_t *m = va_arg(args, const uint8_t *);
-				if(!m || !(ref = lv2_osc_forge_midi(oforge, m, size)))
+				if(!m || !(ref = lv2_osc_forge_midi(forge, osc, m, size)))
 					return 0;
 				break;
 			}
 			
 			case LV2_OSC_TRUE:
 			{
-				if(!(ref = lv2_osc_forge_true(oforge)))
+				if(!(ref = lv2_osc_forge_true(forge)))
 					return 0;
 				break;
 			}
 			case LV2_OSC_FALSE:
 			{
-				if(!(ref = lv2_osc_forge_false(oforge)))
+				if(!(ref = lv2_osc_forge_false(forge)))
 					return 0;
 				break;
 			}
 			case LV2_OSC_NIL:
 			{
-				if(!(ref = lv2_osc_forge_nil(oforge)))
+				if(!(ref = lv2_osc_forge_nil(forge)))
 					return 0;
 				break;
 			}
 			case LV2_OSC_IMPULSE:
 			{
-				if(!(ref = lv2_osc_forge_impulse(oforge)))
+				if(!(ref = lv2_osc_forge_impulse(forge)))
 					return 0;
 				break;
 			}
@@ -475,33 +326,259 @@ lv2_osc_forge_message_varlist(LV2_OSC_Forge *oforge, uint32_t id,
 		}
 	}
 
-	lv2_osc_forge_pop(oforge, frame);
+	lv2_osc_forge_pop(forge, frame);
 
 	return ref;
 }
 
+/**
+   TODO
+*/
 static inline LV2_Atom_Forge_Ref
-lv2_osc_forge_message_vararg(LV2_OSC_Forge *oforge, uint32_t id,
+lv2_osc_forge_message_vararg(LV2_Atom_Forge *forge, LV2_OSC *osc, uint32_t id,
 	const char *path, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
 
 	LV2_Atom_Forge_Ref ref;
-	ref = lv2_osc_forge_message_varlist(oforge, id, path, fmt, args);
+	ref = lv2_osc_forge_message_varlist(forge, osc, id, path, fmt, args);
 
 	va_end(args);
 
 	return ref;
 }
 
-/**
-   @}
-   @}
-*/
+static inline LV2_Atom_Forge_Ref
+lv2_osc_forge_message(LV2_Atom_Forge *forge, LV2_OSC *osc,
+	uint32_t id, const uint8_t *buf, size_t size)
+{
+	LV2_Atom_Forge_Frame frame [2];
+	LV2_Atom_Forge_Ref ref;
+
+	const void *ptr = buf;
+	const void *end = buf + size;
+
+	const char *path = (const char *)ptr;
+	ptr += lv2_osc_pad_size(strlen(path) + 1);
+	if(ptr > end)
+		return 0;
+
+	const char *fmt = (const char *)ptr;
+	ptr += lv2_osc_pad_size(strlen(fmt) + 1);
+	if(ptr > end)
+		return 0;
+
+	if(!lv2_osc_check_path(path) || !lv2_osc_check_fmt(fmt, 1))
+		return 0;
+
+	if(!(ref = lv2_osc_forge_message_head(forge, osc, frame, id, path)))
+		return 0;
+
+	for(const char *type = fmt+1; *type && (ptr < end); type++)
+	{
+		switch(*type)
+		{
+			case LV2_OSC_INT:
+			{
+				union _swap32 s = { .u = *(const uint32_t *)ptr };
+				s.u = be32toh(s.u);
+				if(!(ref = lv2_osc_forge_int(forge, s.i)))
+					return 0;
+				ptr += 4;
+				break;
+			}
+			case LV2_OSC_FLOAT:
+			{
+				union _swap32 s = { .u = *(const uint32_t *)ptr };
+				s.u = be32toh(s.u);
+				if(!(ref = lv2_osc_forge_float(forge, s.f)))
+					return 0;
+				ptr += 4;
+				break;
+			}
+			case LV2_OSC_STRING:
+			{
+				const char *s = ptr;
+				const uint32_t len = strlen(s);
+				if(!(ref = lv2_osc_forge_string(forge, s, len)))
+					return 0;
+				ptr += lv2_osc_pad_size(len + 1);
+				break;
+			}
+			case LV2_OSC_BLOB:
+			{
+				union _swap32 s = { .u = *(const uint32_t *)ptr };
+				s.u = be32toh(s.u);
+				const int32_t len = s.i;
+				if(len < 0)
+					return 0;
+				const uint8_t *b = ptr + 4;
+				if(!(ref = lv2_osc_forge_blob(forge, b, len)))
+					return 0;
+				ptr += 4 + lv2_osc_pad_size(len);
+				break;
+			}
+			
+			case LV2_OSC_LONG:
+			{
+				union _swap64 s = { .u = *(const uint64_t *)ptr };
+				s.u = be64toh(s.u);
+				if(!(ref = lv2_osc_forge_long(forge, s.h)))
+					return 0;
+				ptr += 8;
+				break;
+			}
+			case LV2_OSC_DOUBLE:
+			{
+				union _swap64 s = { .u = *(const uint64_t *)ptr };
+				s.u = be64toh(s.u);
+				if(!(ref = lv2_osc_forge_double(forge, s.d)))
+					return 0;
+				ptr += 8;
+				break;
+			}
+			case LV2_OSC_TIMESTAMP:
+			{
+				union _swap64 s = { .u = *(const uint64_t *)ptr };
+				s.u = be64toh(s.u);
+				const uint32_t integral = s.u >> 32;
+				const uint32_t fraction = s.u & 0xffffffff;
+				if(!(ref = lv2_osc_forge_timestamp(forge, osc, integral, fraction)))
+					return 0;
+				ptr += 8;
+				break;
+			}
+			
+			case LV2_OSC_TRUE:
+			{
+				if(!(ref = lv2_osc_forge_true(forge)))
+					return 0;
+				break;
+			}
+			case LV2_OSC_FALSE:
+			{
+				if(!(ref = lv2_osc_forge_false(forge)))
+					return 0;
+				break;
+			}
+			case LV2_OSC_NIL:
+			{
+				if(!(ref = lv2_osc_forge_nil(forge)))
+					return 0;
+				break;
+			}
+			case LV2_OSC_IMPULSE:
+			{
+				if(!(ref = lv2_osc_forge_impulse(forge)))
+					return 0;
+				break;
+			}
+			
+			case LV2_OSC_SYMBOL:
+			{
+				const char *S = ptr;
+				const uint32_t len = strlen(S);
+				if(!(ref = lv2_osc_forge_symbol(forge, osc, S)))
+					return 0;
+				ptr += lv2_osc_pad_size(len + 1);
+				break;
+			}
+			case LV2_OSC_MIDI:
+			{
+				const uint8_t *m = ptr + 1; // skip port
+				if(!(ref = lv2_osc_forge_midi(forge, osc, m, 3)))
+					return 0;
+				ptr += 4;
+				break;
+			}
+
+			default: // unknown argument type
+			{
+				return 0;
+			}
+		}
+	}
+
+	lv2_osc_forge_pop(forge, frame);
+
+	if(ptr == end)
+		return ref;
+
+	return ref;
+}
+
+static inline LV2_Atom_Forge_Ref
+lv2_osc_forge_packet(LV2_Atom_Forge *forge, LV2_OSC *osc,
+	uint32_t id, const uint8_t *buf, size_t size);
+
+static inline LV2_Atom_Forge_Ref
+lv2_osc_forge_bundle(LV2_Atom_Forge *forge, LV2_OSC *osc,
+	uint32_t id, const uint8_t *buf, size_t size)
+{
+	LV2_Atom_Forge_Frame frame [2];
+	LV2_Atom_Forge_Ref ref;
+
+	const void *ptr = buf;
+	const void *end = buf + size;
+
+	if(ptr + 16 > end)
+		return 0;
+
+	if(strncmp(ptr, "#bundle", 8))
+		return 0;
+	ptr += 8;
+
+	union _swap64 s64 = { .u = *(const uint64_t *)ptr };
+	s64.u = be64toh(s64.u);
+	const uint32_t integral = s64.u >> 32;
+	const uint32_t fraction = s64.u & 0xffffffff;
+	ptr += 8;
+
+	if(!(ref = lv2_osc_forge_bundle_head(forge, osc, frame, id, integral, fraction)))
+		return 0;
+
+	while(ptr + 4 <= end)
+	{
+		union _swap32 s32 = { .u = *(const uint32_t *)ptr };
+		s32.u = be32toh(s32.u);
+		ptr += 4;
+
+		if( (s32.i < 0) || (s32.i & 0x3) || (ptr + s32.i > end) )
+			return 0;
+
+		if(!(ref = lv2_osc_forge_packet(forge, osc, id, ptr, s32.i)))
+			return 0;
+		ptr += s32.i;
+	}
+
+	lv2_osc_forge_pop(forge, frame);
+
+	if(ptr == end)
+		return ref;
+
+	return 0;
+}
+
+static inline LV2_Atom_Forge_Ref
+lv2_osc_forge_packet(LV2_Atom_Forge *forge, LV2_OSC *osc,
+	uint32_t id, const uint8_t *buf, size_t size)
+{
+	LV2_Atom_Forge_Ref ref;
+	if(  (ref = lv2_osc_forge_bundle(forge, osc, id, buf, size))
+		|| (ref = lv2_osc_forge_message(forge, osc, id, buf, size)) )
+	{
+		return ref;
+	}
+	return 0;
+}
 
 #ifdef __cplusplus
-}  /* extern "C" */
+} /* extern "C" */
 #endif
 
-#endif  /* LV2_OSC_FORGE_H */
+#endif /* LV2_OSC_FORGE_H */
+
+/**
+   @}
+*/
