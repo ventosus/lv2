@@ -1,0 +1,42 @@
+@prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix uuid: <http://lv2plug.in/ns/ext/uuid#> .
+
+<http://lv2plug.in/ns/ext/uuid>
+	a lv2:Specification ;
+	rdfs:seeAlso <uuid.h> ,
+		<lv2-uuid.doap.ttl> ;
+	lv2:documentation """
+<p>Here comes the doc.</p>
+""" .
+
+uuid:get
+	a lv2:Feature ;
+	lv2:documentation """
+<p>Here comes the doc.</p>
+
+<h3>Possible host code</h3>
+
+<pre class="c-code">
+#include <stdatomic.h>
+
+static _Atomic LV2_UUID lv2_uuid_counter = ATOMIC_VAR_INIT(0);
+
+static LV2_UUID
+lv2_uuid_get_next(LV2_UUID_Get_Handle handle)
+{
+	_Atomic LV2_UUID *counter = handle;
+	return atomic_fetch_add_explicit(counter, 1, memory_order_relaxed);
+}
+
+static LV2_UUID_Get lv2_uuid_get = {
+	.handle = &lv2_uuid_counter,
+	.next = lv2_uuid_get_next
+};
+
+static const LV2_Feature lv2_uuid_get_feature = {
+	.URI = LV2_UUID__get,
+	.data = &lv2_uuid_get	
+};
+</pre>
+""" .
