@@ -13,6 +13,16 @@
 	doap:developer <http://lv2plug.in/ns/meta#gabrbedd> ;
 	doap:maintainer <http://drobilla.net/drobilla#me> ;
 	doap:release [
+		doap:revision "1.6" ;
+		doap:created "2016-09-18" ;
+		doap:file-release <http://lv2plug.in/spec/lv2-1.14.0.tar.bz2> ;
+		dcs:blame <http://open-music-kontrollers.ch/ventosus#me> ;
+		dcs:changeset [
+			dcs:item [
+				rdfs:label "add urid:blank feature."
+			]
+		]
+	] , [
 		doap:revision "1.4" ;
 		doap:created "2012-10-14" ;
 		doap:file-release <http://lv2plug.in/spec/lv2-1.2.0.tar.bz2> ;

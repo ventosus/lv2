@@ -197,3 +197,9 @@ meta:harry
 	a foaf:Person ;
 	foaf:name "Harry van Haaren" ;
 	foaf:mbox <harryhaaren@gmail.com> .
+
+<http://open-music-kontrollers.ch/ventosus#me>
+	a foaf:Person ;
+	foaf:name "Hanspeter Portner" ;
+	foaf:mbox <mailto:dev@open-music-kontrollers.ch> ;
+	rdfs:seeAlso <http://open-music-kontrollers.ch/ventosus> .

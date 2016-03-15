@@ -32,6 +32,7 @@
 
 #define LV2_URID__map   LV2_URID_PREFIX "map"    ///< http://lv2plug.in/ns/ext/urid#map
 #define LV2_URID__unmap LV2_URID_PREFIX "unmap"  ///< http://lv2plug.in/ns/ext/urid#unmap
+#define LV2_URID__blank LV2_URID_PREFIX "blank"  ///< http://lv2plug.in/ns/ext/urid#blank
 
 #define LV2_URID_MAP_URI   LV2_URID__map    ///< Legacy
 #define LV2_URID_UNMAP_URI LV2_URID__unmap  ///< Legacy
@@ -53,9 +54,19 @@ typedef void* LV2_URID_Map_Handle;
 typedef void* LV2_URID_Unmap_Handle;
 
 /**
+   Opaque pointer to host data for LV2_URID_Blank.
+*/
+typedef void* LV2_URID_Blank_Handle;
+
+/**
    URI mapped to an integer.
 */
 typedef uint32_t LV2_URID;
+
+/**
+   Blank integer ID.
+*/
+typedef int64_t LV2_URID_Blank_ID;
 
 /**
    URID Map Feature (LV2_URID__map)
@@ -124,6 +135,68 @@ typedef struct _LV2_URID_Unmap {
 	const char* (*unmap)(LV2_URID_Unmap_Handle handle,
 	                     LV2_URID              urid);
 } LV2_URID_Unmap;
+
+/**
+   URID Blank Feature (LV2_URID__blank)
+*/
+typedef struct _LV2_URID_Blank {
+	/**
+	   Opaque pointer to host data.
+
+	   This MUST be passed to id() whenever it is called.
+	   Otherwise, it must not be interpreted in any way.
+	*/
+	LV2_URID_Blank_Handle handle;
+
+	/**
+	   Get a unique integer identifier.
+
+	   This function MUST be RT-safe, non-blocking, lock-free and wait-free.
+		 Hosts that cannot support lock-free 64-bit integers MAY fall back to
+		 unsigned 32-bit integers.
+
+	   @param handle MUST be the callback_data member of this struct.
+	   @param flags Currently unused.
+
+	   @code
+// Example host implementation in C11 with atomics
+
+#include <stdatomic.h>
+
+#if(ATOMIC_LONG_LOCK_FREE == 2)
+#	pragma message("[URID] atomic LONG is lock-free")
+static atomic_long lv2_urid_blank_id_counter = ATOMIC_VAR_INIT(0);
+#elif(ATOMIC_INT_LOCK_FREE == 2)
+#	pragma message("[URID] atomic INT is lock-free") 
+static atomic_uint lv2_urid_blank_id_counter = ATOMIC_VAR_INIT(0);
+#else
+#	error "[URID] neither atomic LONG nor INT is lock-free"
+#endif
+
+static LV2_URID_Blank_ID
+lv2_urid_blank_id(LV2_URID_Blank_Handle handle, uint32_t flags)
+{
+#if(ATOMIC_LONG_LOCK_FREE == 2)
+	atomic_long* counter = handle;
+#elif(ATOMIC_INT_LOCK_FREE == 2)
+	atomic_uint* counter = handle;
+#endif
+	return atomic_fetch_add_explicit(counter, 1, memory_order_relaxed);
+}
+
+static LV2_URID_Blank lv2_urid_blank = {
+	.handle = &lv2_urid_blank_id_counter,
+	.id = lv2_urid_blank_id
+};
+
+static const LV2_Feature lv2_urid_blank_feature = {
+	.URI = LV2_URID__blank,
+	.data = &lv2_urid_blank
+};
+	   @endcode
+	*/
+	LV2_URID_Blank_ID (*id)(LV2_URID_Blank_Handle handle, uint32_t flags);
+} LV2_URID_Blank;
 
 #ifdef __cplusplus
 }  /* extern "C" */
