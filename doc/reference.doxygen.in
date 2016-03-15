@@ -779,6 +779,7 @@ INPUT                  = @LV2_SRCDIR@/doc/mainpage.dox \
                          @LV2_SRCDIR@/lv2/lv2plug.in/ns/ext/time/time.h \
                          @LV2_SRCDIR@/lv2/lv2plug.in/ns/ext/uri-map/uri-map.h \
                          @LV2_SRCDIR@/lv2/lv2plug.in/ns/ext/urid/urid.h \
+                         @LV2_SRCDIR@/lv2/lv2plug.in/ns/ext/rtid/rtid.h \
                          @LV2_SRCDIR@/lv2/lv2plug.in/ns/ext/worker/worker.h \
                          @LV2_SRCDIR@/lv2/lv2plug.in/ns/extensions/ui/ui.h \
                          @LV2_SRCDIR@/lv2/lv2plug.in/ns/extensions/units/units.h \

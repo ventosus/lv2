@@ -1,0 +1,27 @@
+@prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rtid: <http://lv2plug.in/ns/ext/rtid#> .
+
+<http://lv2plug.in/ns/ext/rtid>
+	a lv2:Specification ;
+	rdfs:seeAlso <rtid.h> ,
+		<lv2-rtid.doap.ttl> ;
+	lv2:documentation """
+<p>This extension defines a simple mechanism for plugins to get unique integer
+identifiers. Typically, plugins use unique integer identifiers in event
+messaging. E.g. to unambigously relate event requests and replies in the
+<a href="../patch/patch.html">patch</a> extension via
+<a href="../patch/patch.html#sequenceNumber">patch:sequenceNumber</a> or to
+generally track event instances and their properties accross time.</p>
+""" .
+
+rtid:get
+	a lv2:Feature ;
+	lv2:documentation """
+<p>A feature which is used to get unique integer identifiers. To support this
+feature, the host must pass an LV2_Feature to LV2_Descriptor::instantiate() with
+URI LV2_RTID__get and data pointed to an instance of LV2_RTID_Get.</p>
+
+<p>Implementations of this extension MUST be RT-safe, non-blocking, lock-free
+and wait-free.</p>
+""" .
