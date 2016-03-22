@@ -100,6 +100,7 @@
 #define LV2_CORE__inPlaceBroken      LV2_CORE_PREFIX "inPlaceBroken"
 #define LV2_CORE__index              LV2_CORE_PREFIX "index"
 #define LV2_CORE__integer            LV2_CORE_PREFIX "integer"
+#define LV2_CORE__isBitmask          LV2_CORE_PREFIX "isBitmask"
 #define LV2_CORE__isLive             LV2_CORE_PREFIX "isLive"
 #define LV2_CORE__latency            LV2_CORE_PREFIX "latency"
 #define LV2_CORE__maximum            LV2_CORE_PREFIX "maximum"

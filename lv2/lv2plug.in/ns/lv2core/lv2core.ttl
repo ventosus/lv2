@@ -742,6 +742,20 @@ lv2:portProperty
 	rdfs:label "port property" ;
 	rdfs:comment """Relates Ports to PortProperties. The PortProperty may be ignored without catastrophic effects, though it may be useful e.g. for providing a sensible interface for the port.""" .
 
+lv2:ParameterProperty
+	a rdfs:Class ,
+		owl:Class ;
+	rdfs:label "Parameter Property" ;
+	rdfs:comment """A property of this parameter that allows a host to make more sensible decisions (e.g. to provide a better interface).""" .
+
+lv2:parameterProperty
+	a rdf:Property ,
+		owl:ObjectProperty ;
+	rdfs:domain lv2:Parameter ;
+	rdfs:range lv2:ParameterProperty ;
+	rdfs:label "parameter property" ;
+	rdfs:comment """Relates Parameters to ParameterProperties. The ParameterProperty may be ignored without catastrophic effects, though it may be useful e.g. for providing a sensible interface for the parameter.""" .
+
 lv2:connectionOptional
 	a lv2:PortProperty ;
 	rdfs:label "connection optional" ;
@@ -786,6 +800,12 @@ lv2:enumeration
 	a lv2:PortProperty ;
 	rdfs:label "enumeration" ;
 	rdfs:comment """Indicates that a port's only reasonable values are the scale points defined for that port. A host SHOULD NOT allow a user to set the value of such a port to anything other than a scale point. However, a plugin MUST operate reasonably even if such a port has an input that is not a scale point, preferably by simply choosing the largest enumeration value less than or equal to the actual input value (i.e. round the input value down).""" .
+
+lv2:isBitmask
+	a lv2:PortProperty ,
+		lv2:ParameterProperty ;
+	rdfs:label "is bitmask" ;
+	rdfs:comment """Indicates that a port's or parameter's values are interpreted as "bitmasks". A user interface would likely wish to provide control allowing toggling of individual bits). lv2:isBitmask SHOULD be accompanied by lv2:integer for ports and MUST only be used with integer type parameters. A plugin MUST define lv2:maximum along lv2:isBitmask. lv2:minimum is inherently assumed 0. For ports, lv2:maximum MUST be smaller than 2^24.""" .
 
 lv2:isSideChain
 	a lv2:PortProperty ;

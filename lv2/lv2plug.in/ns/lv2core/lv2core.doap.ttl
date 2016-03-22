@@ -16,6 +16,18 @@
 		<http://drobilla.net/drobilla#me> ;
 	doap:maintainer <http://drobilla.net/drobilla#me> ;
 	doap:release [
+		doap:revision "12.6" ;
+		doap:created "2016-03-18" ;
+		doap:file-release <http://lv2plug.in/spec/lv2-1.14.0.tar.bz2> ;
+		dcs:blame <http://open-music-kontrollers.ch/ventosus#me> ;
+		dcs:changeset [
+			dcs:item [
+				rdfs:label "Add lv2:ParameterProperty and lv2:parameterProperty so one can define properties for an lv2:Parameter."
+			] , [
+				rdfs:label "Add lv2:isBitmask port and parameter property."
+			]
+		]
+	] , [
 		doap:revision "12.4" ;
 		doap:created "2015-04-07" ;
 		doap:file-release <http://lv2plug.in/spec/lv2-1.12.0.tar.bz2> ;
