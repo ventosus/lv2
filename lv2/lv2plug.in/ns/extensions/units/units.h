@@ -48,6 +48,7 @@
 #define LV2_UNITS__m                LV2_UNITS_PREFIX "m"
 #define LV2_UNITS__mhz              LV2_UNITS_PREFIX "mhz"
 #define LV2_UNITS__midiNote         LV2_UNITS_PREFIX "midiNote"
+#define LV2_UNITS__midiController   LV2_UNITS_PREFIX "midiController"
 #define LV2_UNITS__mile             LV2_UNITS_PREFIX "mile"
 #define LV2_UNITS__min              LV2_UNITS_PREFIX "min"
 #define LV2_UNITS__mm               LV2_UNITS_PREFIX "mm"
