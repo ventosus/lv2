@@ -81,10 +81,14 @@ lv2_log_vprintf(LV2_Log_Logger* logger,
                 const char*     fmt,
                 va_list         args)
 {
-	if (logger && logger->log) {
+	if (!logger) {
+		return -1;
+	} else if (logger->log) {
 		return logger->log->vprintf(logger->log->handle, type, fmt, args);
-	} else {
+	} else if (type != logger->Trace) {
 		return vfprintf(stderr, fmt, args);
+	} else {
+		return 0;
 	}
 }
 
@@ -93,6 +97,8 @@ LV2_LOG_FUNC(2, 3)
 static inline int
 lv2_log_error(LV2_Log_Logger* logger, const char* fmt, ...)
 {
+	if (!logger)
+		return -1;
 	va_list args;
 	va_start(args, fmt);
 	const int ret = lv2_log_vprintf(logger, logger->Error, fmt, args);
@@ -105,6 +111,8 @@ LV2_LOG_FUNC(2, 3)
 static inline int
 lv2_log_note(LV2_Log_Logger* logger, const char* fmt, ...)
 {
+	if (!logger)
+		return -1;
 	va_list args;
 	va_start(args, fmt);
 	const int ret = lv2_log_vprintf(logger, logger->Note, fmt, args);
@@ -117,6 +125,8 @@ LV2_LOG_FUNC(2, 3)
 static inline int
 lv2_log_trace(LV2_Log_Logger* logger, const char* fmt, ...)
 {
+	if (!logger)
+		return -1;
 	va_list args;
 	va_start(args, fmt);
 	const int ret = lv2_log_vprintf(logger, logger->Trace, fmt, args);
@@ -129,6 +139,8 @@ LV2_LOG_FUNC(2, 3)
 static inline int
 lv2_log_warning(LV2_Log_Logger* logger, const char* fmt, ...)
 {
+	if (!logger)
+		return -1;
 	va_list args;
 	va_start(args, fmt);
 	const int ret = lv2_log_vprintf(logger, logger->Warning, fmt, args);
