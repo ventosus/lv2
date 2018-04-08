@@ -66,7 +66,7 @@ typedef uint32_t LV2_URID;
 /**
    Blank integer ID.
 */
-typedef int64_t LV2_URID_Blank_ID;
+typedef int32_t LV2_URID_Blank_ID;
 
 /**
    URID Map Feature (LV2_URID__map)
@@ -163,10 +163,7 @@ typedef struct _LV2_URID_Blank {
 
 #include <stdatomic.h>
 
-#if(ATOMIC_LONG_LOCK_FREE == 2)
-#	pragma message("[URID] atomic LONG is lock-free")
-static atomic_long lv2_urid_blank_id_counter = ATOMIC_VAR_INIT(0);
-#elif(ATOMIC_INT_LOCK_FREE == 2)
+#if(ATOMIC_INT_LOCK_FREE == 2)
 #	pragma message("[URID] atomic INT is lock-free") 
 static atomic_uint lv2_urid_blank_id_counter = ATOMIC_VAR_INIT(0);
 #else
@@ -176,11 +173,7 @@ static atomic_uint lv2_urid_blank_id_counter = ATOMIC_VAR_INIT(0);
 static LV2_URID_Blank_ID
 lv2_urid_blank_id(LV2_URID_Blank_Handle handle, uint32_t flags)
 {
-#if(ATOMIC_LONG_LOCK_FREE == 2)
-	atomic_long* counter = handle;
-#elif(ATOMIC_INT_LOCK_FREE == 2)
 	atomic_uint* counter = handle;
-#endif
 	return atomic_fetch_add_explicit(counter, 1, memory_order_relaxed);
 }
 
