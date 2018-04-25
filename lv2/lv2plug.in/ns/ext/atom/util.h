@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "lv2/lv2plug.in/ns/lv2core/lv2.h"
 #include "lv2/lv2plug.in/ns/ext/atom/atom.h"
 
 #ifdef __cplusplus
@@ -354,6 +355,7 @@ lv2_atom_object_query(const LV2_Atom_Object* object,
 /**
    Body only version of lv2_atom_object_get().
 */
+LV2_SENTINEL_FUNC
 static inline int
 lv2_atom_object_body_get(uint32_t size, const LV2_Atom_Object_Body* body, ...)
 {
@@ -407,6 +409,7 @@ lv2_atom_object_body_get(uint32_t size, const LV2_Atom_Object_Body* body, ...)
                        0);
    @endcode
 */
+LV2_SENTINEL_FUNC
 static inline int
 lv2_atom_object_get(const LV2_Atom_Object* object, ...)
 {
@@ -461,6 +464,7 @@ lv2_atom_object_get(const LV2_Atom_Object* object, ...)
                        0);
    @endcode
 */
+LV2_SENTINEL_FUNC
 static inline int
 lv2_atom_object_get_typed(const LV2_Atom_Object* object, ...)
 {

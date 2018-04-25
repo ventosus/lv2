@@ -73,6 +73,7 @@ lv2_features_data(const LV2_Feature*const* features,
 
    @return NULL on success, otherwise the URI of this missing feature.
 */
+LV2_SENTINEL_FUNC
 static inline const char*
 lv2_features_query(const LV2_Feature* const* features, ...)
 {

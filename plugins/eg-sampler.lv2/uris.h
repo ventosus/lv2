@@ -118,7 +118,7 @@ read_set_file(const SamplerURIs*     uris,
 
 	/* Get property URI. */
 	const LV2_Atom* property = NULL;
-	lv2_atom_object_get(obj, uris->patch_property, &property, 0);
+	lv2_atom_object_get(obj, uris->patch_property, &property, NULL);
 	if (!property) {
 		fprintf(stderr, "Malformed set message has no body.\n");
 		return NULL;
@@ -132,7 +132,7 @@ read_set_file(const SamplerURIs*     uris,
 
 	/* Get value. */
 	const LV2_Atom* value = NULL;
-	lv2_atom_object_get(obj, uris->patch_value, &value, 0);
+	lv2_atom_object_get(obj, uris->patch_value, &value, NULL);
 	if (!value) {
 		fprintf(stderr, "Malformed set message has no value.\n");
 		return NULL;

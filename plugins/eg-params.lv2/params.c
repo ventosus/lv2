@@ -422,7 +422,7 @@ run(LV2_Handle instance, uint32_t sample_count)
 			                    uris->patch_subject,  (const LV2_Atom**)&subject,
 			                    uris->patch_property, (const LV2_Atom**)&property,
 			                    uris->patch_value,    &value,
-			                    0);
+			                    NULL);
 			if (!subject_is_plugin(self, subject)) {
 				lv2_log_error(&self->log, "Set for unknown subject\n");
 			} else if (!property) {
@@ -441,7 +441,7 @@ run(LV2_Handle instance, uint32_t sample_count)
 			lv2_atom_object_get(obj,
 			                    uris->patch_subject,  (const LV2_Atom**)&subject,
 			                    uris->patch_property, (const LV2_Atom**)&property,
-			                    0);
+			                    NULL);
 			if (!subject_is_plugin(self, subject)) {
 				lv2_log_error(&self->log, "Get with unknown subject\n");
 			} else if (!property) {

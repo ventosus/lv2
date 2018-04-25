@@ -342,7 +342,7 @@ handle_event(Sampler* self, LV2_Atom_Event* ev)
 			lv2_atom_object_get(obj,
 			                    uris->patch_property, &property,
 			                    uris->patch_value,    &value,
-			                    0);
+			                    NULL);
 			if (!property) {
 				lv2_log_error(&self->logger, "Set message with no property\n");
 				return;
@@ -370,7 +370,7 @@ handle_event(Sampler* self, LV2_Atom_Event* ev)
 			lv2_atom_object_get_typed(
 				obj,
 				uris->patch_accept,      &accept,  uris->atom_URID,
-				peaks_uris->peaks_total, &n_peaks, peaks_uris->atom_Int, 0);
+				peaks_uris->peaks_total, &n_peaks, peaks_uris->atom_Int, NULL);
 			if (accept && accept->body == peaks_uris->peaks_PeakUpdate) {
 				// Received a request for peaks, prepare for transmission
 				peaks_sender_start(&self->psend,

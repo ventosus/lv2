@@ -273,7 +273,7 @@ run(LV2_Handle handle, uint32_t n_samples)
 					const LV2_Atom* amp = NULL;
 					lv2_atom_object_get(obj, self->uris.ui_spp, &spp,
 					                    self->uris.ui_amp, &amp,
-					                    0);
+					                    NULL);
 					if (spp) {
 						self->ui_spp = ((const LV2_Atom_Int*)spp)->body;
 					}

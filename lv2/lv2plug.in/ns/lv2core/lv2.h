@@ -361,6 +361,15 @@ typedef struct _LV2_Descriptor {
 #    define LV2_SYMBOL_EXPORT LV2_SYMBOL_EXTERN __attribute__((visibility("default")))
 #endif
 
+/** @cond */
+#ifdef __GNUC__
+/** Allow checking for mandatory sentinel in variadic functions. */
+#    define LV2_SENTINEL_FUNC __attribute__((sentinel(0)))
+#else
+#    define LV2_SENTINEL_FUNC
+#endif
+/** @endcond */
+
 /**
    Prototype for plugin accessor function.
 
