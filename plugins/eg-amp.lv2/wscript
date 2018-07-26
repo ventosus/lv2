@@ -37,11 +37,13 @@ def build(bld):
     module_ext = module_pat[module_pat.rfind('.'):]
 
     # Build manifest.ttl by substitution (for portable lib extension)
-    bld(features     = 'subst',
-        source       = 'manifest.ttl.in',
-        target       = '%s/%s' % (bundle, 'manifest.ttl'),
-        install_path = '${LV2DIR}/%s' % bundle,
-        LIB_EXT      = module_ext)
+    bld(features          = 'subst',
+        source            = 'manifest.ttl.in',
+        target            = '%s/%s' % (bundle, 'manifest.ttl'),
+        install_path      = '${LV2DIR}/%s' % bundle,
+        LIB_EXT           = module_ext,
+        LV2_MINOR_VERSION = '15',
+        LV2_MICRO_VERSION = '3')
 
     # Copy other data files to build bundle (build/eg-amp.lv2)
     for i in ['amp.ttl']:

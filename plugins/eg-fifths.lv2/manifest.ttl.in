@@ -5,4 +5,6 @@
 <http://lv2plug.in/plugins/eg-fifths>
 	a lv2:Plugin ;
 	lv2:binary <fifths@LIB_EXT@> ;
+	lv2:microVersion @LV2_MICRO_VERSION@ ;
+	lv2:minorVersion @LV2_MINOR_VERSION@ ;
 	rdfs:seeAlso <fifths.ttl> .

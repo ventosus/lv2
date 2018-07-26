@@ -146,6 +146,14 @@ lv2:Plugin
 		owl:onProperty doap:name ;
 		owl:someValuesFrom rdf:PlainLiteral ;
 		rdfs:comment "A plugin MUST have at least one untranslated doap:name." ;
+	] , [
+		a owl:Restriction ;
+		owl:cardinality 1 ;
+		owl:onProperty lv2:minorVersion
+	] , [
+		a owl:Restriction ;
+		owl:cardinality 1 ;
+		owl:onProperty lv2:microVersion
 	] ;
 	lv2:documentation """
 <p>The class which represents an LV2 plugin.</p>

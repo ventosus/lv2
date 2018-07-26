@@ -4,4 +4,6 @@
 <http://lv2plug.in/plugins/eg-params>
 	a lv2:Plugin ;
 	lv2:binary <params@LIB_EXT@> ;
+	lv2:microVersion @LV2_MICRO_VERSION@ ;
+	lv2:minorVersion @LV2_MINOR_VERSION@ ;
 	rdfs:seeAlso <params.ttl> .

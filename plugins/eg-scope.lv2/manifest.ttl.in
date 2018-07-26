@@ -6,12 +6,16 @@
 <http://lv2plug.in/plugins/eg-scope#Mono>
 	a lv2:Plugin ;
 	lv2:binary <examploscope@LIB_EXT@>  ;
+	lv2:microVersion @LV2_MICRO_VERSION@ ;
+	lv2:minorVersion @LV2_MINOR_VERSION@ ;
 	rdfs:seeAlso <examploscope.ttl> .
 
 # ==== Stereo plugin variant ====
 <http://lv2plug.in/plugins/eg-scope#Stereo>
 	a lv2:Plugin ;
 	lv2:binary <examploscope@LIB_EXT@>  ;
+	lv2:microVersion @LV2_MICRO_VERSION@ ;
+	lv2:minorVersion @LV2_MINOR_VERSION@ ;
 	rdfs:seeAlso <examploscope.ttl> .
 
 # ==== Gtk 2.0 UI ====
