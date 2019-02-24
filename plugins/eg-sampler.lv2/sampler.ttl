@@ -57,7 +57,7 @@
 	] ;
 	state:state [
 		<http://lv2plug.in/plugins/eg-sampler#sample> <click.wav> ;
-		param:gain 1.0
+		param:gain "1.0"^^xsd:float
 	] .
 
 <http://lv2plug.in/plugins/eg-sampler#ui>
