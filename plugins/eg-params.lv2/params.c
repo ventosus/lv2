@@ -49,9 +49,6 @@ typedef struct {
 	LV2_URID atom_eventTransfer;
 	LV2_URID eg_spring;
 	LV2_URID midi_Event;
-	LV2_URID patch_Get;
-	LV2_URID patch_Set;
-	LV2_URID patch_Put;
 	LV2_URID patch_body;
 	LV2_URID patch_subject;
 	LV2_URID patch_property;
@@ -83,9 +80,6 @@ map_uris(LV2_URID_Map* map, URIs* uris)
 	uris->atom_eventTransfer = map->map(map->handle, LV2_ATOM__eventTransfer);
 	uris->eg_spring          = map->map(map->handle, EG_PARAMS_URI "#spring");
 	uris->midi_Event         = map->map(map->handle, LV2_MIDI__MidiEvent);
-	uris->patch_Get          = map->map(map->handle, LV2_PATCH__Get);
-	uris->patch_Set          = map->map(map->handle, LV2_PATCH__Set);
-	uris->patch_Put          = map->map(map->handle, LV2_PATCH__Put);
 	uris->patch_body         = map->map(map->handle, LV2_PATCH__body);
 	uris->patch_subject      = map->map(map->handle, LV2_PATCH__subject);
 	uris->patch_property     = map->map(map->handle, LV2_PATCH__property);
@@ -413,7 +407,8 @@ run(LV2_Handle instance, uint32_t sample_count)
 	// Read incoming events
 	LV2_ATOM_SEQUENCE_FOREACH(self->in_port, ev) {
 		const LV2_Atom_Object* obj = (const LV2_Atom_Object*)&ev->body;
-		if (obj->body.otype == uris->patch_Set) {
+		switch(obj->body.otype) {
+		case lv2_patch_set: {
 			// Get the property and value of the set message
 			const LV2_Atom_URID* subject  = NULL;
 			const LV2_Atom_URID* property = NULL;
@@ -434,7 +429,8 @@ run(LV2_Handle instance, uint32_t sample_count)
 				const LV2_URID key = property->body;
 				set_parameter(self, key, value->size, value->type, value + 1, false);
 			}
-		} else if (obj->body.otype == uris->patch_Get) {
+		} break;
+		case lv2_patch_get: {
 			// Get the property of the get message
 			const LV2_Atom_URID* subject  = NULL;
 			const LV2_Atom_URID* property = NULL;
@@ -448,7 +444,7 @@ run(LV2_Handle instance, uint32_t sample_count)
 				// Get with no property, emit complete state
 				lv2_atom_forge_frame_time(&self->forge, ev->time.frames);
 				LV2_Atom_Forge_Frame pframe;
-				lv2_atom_forge_object(&self->forge, &pframe, 0, uris->patch_Put);
+				lv2_atom_forge_object(&self->forge, &pframe, 0, lv2_patch_put);
 				lv2_atom_forge_key(&self->forge, uris->patch_body);
 
 				LV2_Atom_Forge_Frame bframe;
@@ -466,7 +462,7 @@ run(LV2_Handle instance, uint32_t sample_count)
 				if (value) {
 					lv2_atom_forge_frame_time(&self->forge, ev->time.frames);
 					LV2_Atom_Forge_Frame frame;
-					lv2_atom_forge_object(&self->forge, &frame, 0, uris->patch_Set);
+					lv2_atom_forge_object(&self->forge, &frame, 0, lv2_patch_set);
 					lv2_atom_forge_key(&self->forge, uris->patch_property);
 					lv2_atom_forge_urid(&self->forge, property->body);
 					store_prop(self, NULL, NULL, write_param_to_forge, &self->forge,
@@ -474,9 +470,11 @@ run(LV2_Handle instance, uint32_t sample_count)
 					lv2_atom_forge_pop(&self->forge, &frame);
 				}
 			}
-		} else {
+		} break;
+		default: {
 			lv2_log_trace(&self->log, "Unknown object type <%s>\n",
 			              unmap(self, obj->body.otype));
+		} break;
 		}
 	}
 
@@ -485,7 +483,7 @@ run(LV2_Handle instance, uint32_t sample_count)
 		self->state.spring.body = (spring >= 0.001) ? spring - 0.001 : 0.0;
 		lv2_atom_forge_frame_time(&self->forge, 0);
 		LV2_Atom_Forge_Frame frame;
-		lv2_atom_forge_object(&self->forge, &frame, 0, uris->patch_Set);
+		lv2_atom_forge_object(&self->forge, &frame, 0, lv2_patch_set);
 
 		lv2_atom_forge_key(&self->forge, uris->patch_property);
 		lv2_atom_forge_urid(&self->forge, uris->eg_spring);

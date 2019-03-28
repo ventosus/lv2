@@ -37,6 +37,7 @@
 #define LV2_URID_UNMAP_URI LV2_URID__unmap  ///< Legacy
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -124,6 +125,59 @@ typedef struct _LV2_URID_Unmap {
 	const char* (*unmap)(LV2_URID_Unmap_Handle handle,
 	                     LV2_URID              urid);
 } LV2_URID_Unmap;
+
+/**
+   FIXME
+*/
+typedef struct _LV2_URID_Dict {
+	LV2_URID urid;
+	const char *uri;
+} LV2_URID_Dict;
+
+/**
+   FIXME
+*/
+enum {
+	LV2_URID_OFFSET_ATOM  = 0x0000,
+	LV2_URID_OFFSET_PATCH = 0x0100,
+
+	LV2_URID_MAX          = 0x1000,
+};
+
+/**
+   FIXME
+*/
+extern const LV2_URID_Dict lv2_atom_dict [];
+extern const LV2_URID_Dict lv2_patch_dict [];
+
+/**
+   FIXME
+*/
+static const LV2_URID_Dict *lv2_dict [] = {
+	lv2_atom_dict,
+	lv2_patch_dict,
+	NULL /* sentinel */
+};
+
+/**
+   FIXME
+*/
+#define LV2_URID_DICT_FOREACH(ELMNT) \
+	for(const LV2_URID_Dict **__elmnt = lv2_dict; *__elmnt; __elmnt++) \
+		for(const LV2_URID_Dict *(ELMNT) = *__elmnt; (ELMNT)->uri; (ELMNT)++)
+
+/**
+   FIXME
+*/
+static void
+_initialize_hosts_urid_hash()
+{
+	LV2_URID_DICT_FOREACH(elmnt)
+	{
+		//_add_to_hash(elmnt->urid, elmnt->uri);
+	}
+}
+
 
 #ifdef __cplusplus
 }  /* extern "C" */

@@ -29,6 +29,8 @@
 #ifndef LV2_PATCH_H
 #define LV2_PATCH_H
 
+#include "lv2/urid/urid.h"
+
 #define LV2_PATCH_URI    "http://lv2plug.in/ns/ext/patch"  ///< http://lv2plug.in/ns/ext/patch
 #define LV2_PATCH_PREFIX LV2_PATCH_URI "#"                 ///< http://lv2plug.in/ns/ext/patch#
 
@@ -59,6 +61,35 @@
 #define LV2_PATCH__value          LV2_PATCH_PREFIX "value"           ///< http://lv2plug.in/ns/ext/patch#value
 #define LV2_PATCH__wildcard       LV2_PATCH_PREFIX "wildcard"        ///< http://lv2plug.in/ns/ext/patch#wildcard
 #define LV2_PATCH__writable       LV2_PATCH_PREFIX "writable"        ///< http://lv2plug.in/ns/ext/patch#writable
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+   FIXME
+*/
+enum {
+	lv2_patch_patch = LV2_URID_OFFSET_PATCH,
+	lv2_patch_get,
+	lv2_patch_set,
+	lv2_patch_put,
+};
+
+/**
+   FIXME
+*/
+const LV2_URID_Dict lv2_patch_dict [] = {
+	{ lv2_patch_patch, LV2_PATCH__Patch },
+	{ lv2_patch_get, LV2_PATCH__Get },
+	{ lv2_patch_set, LV2_PATCH__Set },
+	{ lv2_patch_put, LV2_PATCH__Put },
+	{ 0, NULL } /* sentinel */
+};
+
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif
 
 #endif  /* LV2_PATCH_H */
 

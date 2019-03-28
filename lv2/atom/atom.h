@@ -26,6 +26,8 @@
 #ifndef LV2_ATOM_H
 #define LV2_ATOM_H
 
+#include "lv2/urid/urid.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -69,6 +71,25 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+   FIXME
+*/
+enum {
+	lv2_atom_bool = LV2_URID_OFFSET_ATOM,
+	lv2_atom_int,
+	lv2_atom_float
+};
+
+/**
+   FIXME
+*/
+const LV2_URID_Dict lv2_atom_dict [] = {
+	{ lv2_atom_bool, LV2_ATOM__Bool },
+	{ lv2_atom_int, LV2_ATOM__Int },
+	{ lv2_atom_float, LV2_ATOM__Float },
+	{ 0, NULL } /* sentinel */
+};
 
 /** @cond */
 /** This expression will fail to compile if double does not fit in 64 bits. */
